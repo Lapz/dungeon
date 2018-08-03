@@ -12,13 +12,19 @@ const MAX_ROOM_HEIGHT: i32 = 12;
 pub struct Level {
     width: i32,
     height: i32,
-    board: Vec<Vec<i32>>,
+    board: Vec<Vec<Tile>>,
     rooms: Vec<Room>,
+}
+
+#[derive(Debug,Clone)]
+enum Tile {
+    Empty,
+    Walkable
 }
 
 impl Level {
     pub fn new(width: i32, height: i32) -> Self {
-        let board = (0..height).map(|_| vec![0; width as usize]).collect();
+        let board = (0..height).map(|_| vec![Tile::Empty; width as usize]).collect();
         Level {
             width,
             height,
@@ -27,9 +33,7 @@ impl Level {
         }
     }
 
-    pub fn place_rooms(&mut self) {
-        let mut rng = rand::thread_rng();
-        let mut rng = StdRng::from_rng(&mut rng).unwrap();
+    pub fn place_rooms(&mut self,rng:&mut StdRng) {
 
         for _ in 0..MAX_ROOMS {
             let mut x = rng.gen_range(0, self.width);
@@ -70,7 +74,7 @@ impl Level {
                 let y = (room.y + row) as usize;
                 let x = (room.x + col) as usize;
 
-                self.board[y][x] = 1;
+                self.board[y][x] = Tile::Walkable;
             }
         }
 
@@ -82,11 +86,21 @@ impl Display for Level {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for row in 0..self.height as usize {
             for col in 0..self.width as usize {
-                write!(f, "{:?} ", self.board[row][col])?
+                write!(f, "{} ", self.board[row][col])?
             }
             write!(f, "\n")?
         }
 
         Ok(())
+    }
+}
+
+
+impl Display for Tile {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Tile::Empty => write!(f,""),
+            Tile::Walkable => write!(f,"1")
+        }
     }
 }

@@ -4,4 +4,6 @@ version = "0.1.0"
 authors = ["Lenard Pratt <striderman34@gmail.com>"]
 
 [dependencies]
+arrayref = "0.3.4"
 rand = "0.5"
+sha2 ="0.7.1"
