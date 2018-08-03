@@ -3,8 +3,6 @@ use room::Room;
 use std::fmt::{self, Display};
 use seed::create_hash;
 use ggez::{Context, GameResult};
-use ggez::graphics;
-use ggez::conf::NumSamples;
 
 const MAX_ROOMS: i32 = 10;
 const MIN_ROOM_WIDTH: i32 = 40;
@@ -47,10 +45,6 @@ impl Level {
 
 
     pub fn draw(&self,ctx:&mut Context) -> GameResult<()> {
-        // let canvas = graphics::Canvas::new(ctx,self.width as u32,self.height as u32,NumSamples::from_u32(1).unwrap()).unwrap();
-
-        // graphics::set_canvas(ctx,Some(&canvas));
-
 
         for room in self.rooms.iter() {
             room.draw(ctx)?;
@@ -140,7 +134,7 @@ pub fn create_level() -> Level {
 
    let mut rng:StdRng = SeedableRng::from_seed(*seed);
    
-   let mut level = Level::new(480, 400);
+   let mut level = Level::new(720, 400);
 
     level.place_rooms(&mut rng);
     level

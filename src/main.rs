@@ -42,7 +42,7 @@ impl event::EventHandler for MainState {
 
 
     fn draw(&mut self,ctx:&mut Context) -> GameResult<()> {
-        // graphics::clear(ctx);
+        graphics::clear(ctx);
 
         self.level.draw(ctx)?;
 
