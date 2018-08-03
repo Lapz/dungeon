@@ -7,3 +7,4 @@ authors = ["Lenard Pratt <striderman34@gmail.com>"]
 arrayref = "0.3.4"
 rand = "0.5"
 sha2 ="0.7.1"
+ggez = "0.4"

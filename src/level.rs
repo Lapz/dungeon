@@ -1,12 +1,16 @@
-use rand::{StdRng,Rng,self,SeedableRng};
+use rand::{StdRng,Rng,SeedableRng};
 use room::Room;
 use std::fmt::{self, Display};
+use seed::create_hash;
+use ggez::{Context, GameResult};
+use ggez::graphics;
+use ggez::conf::NumSamples;
 
 const MAX_ROOMS: i32 = 10;
-const MIN_ROOM_WIDTH: i32 = 4;
-const MIN_ROOM_HEIGHT: i32 = 5;
-const MAX_ROOM_WIDTH: i32 = 8;
-const MAX_ROOM_HEIGHT: i32 = 12;
+const MIN_ROOM_WIDTH: i32 = 40;
+const MIN_ROOM_HEIGHT: i32 = 50;
+const MAX_ROOM_WIDTH: i32 = 80;
+const MAX_ROOM_HEIGHT: i32 = 120;
 
 #[derive(Debug)]
 pub struct Level {
@@ -31,6 +35,28 @@ impl Level {
             board,
             rooms: vec![],
         }
+    }
+
+    pub fn update(&mut self,ctx:&mut Context) -> GameResult<()> {
+        for room in self.rooms.iter() {
+            room.draw(ctx)?;
+        }
+
+        Ok(())
+    }
+
+
+    pub fn draw(&self,ctx:&mut Context) -> GameResult<()> {
+        // let canvas = graphics::Canvas::new(ctx,self.width as u32,self.height as u32,NumSamples::from_u32(1).unwrap()).unwrap();
+
+        // graphics::set_canvas(ctx,Some(&canvas));
+
+
+        for room in self.rooms.iter() {
+            room.draw(ctx)?;
+        }
+
+        Ok(())
     }
 
     pub fn place_rooms(&mut self,rng:&mut StdRng) {
@@ -103,4 +129,19 @@ impl Display for Tile {
             Tile::Walkable => write!(f,"1")
         }
     }
+}
+
+
+pub fn create_level() -> Level {
+   let hash = create_hash("It's time to go");
+
+   let seed = array_ref!(hash.as_bytes(),0,32);
+
+
+   let mut rng:StdRng = SeedableRng::from_seed(*seed);
+   
+   let mut level = Level::new(480, 400);
+
+    level.place_rooms(&mut rng);
+    level
 }

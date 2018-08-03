@@ -1,3 +1,5 @@
+use ggez::{Context, GameResult};
+use ggez::graphics;
 #[derive(Debug,Copy,Clone)]
 pub struct Room {
     pub x: i32,
@@ -20,6 +22,13 @@ impl Room {
             height,
             centre: (x + (width / 2), y + (height / 2)),
         }
+    }
+
+    pub fn draw(&self,ctx:&mut Context) -> GameResult<()> {
+        let rect = graphics::Rect::new(self.x as f32,self.y as f32, self.width as f32, self.height as f32);
+
+        graphics::rectangle(ctx,graphics::DrawMode::Fill,rect)?;
+        Ok(())
     }
 
     pub fn intersect(&self, other: &Room) -> bool {
