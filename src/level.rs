@@ -1,3 +1,4 @@
+use ggez::graphics;
 use ggez::{Context, GameResult};
 use rand::{Rng, SeedableRng, StdRng};
 use room::Room;
@@ -16,12 +17,32 @@ pub struct Level {
     height: i32,
     board: Vec<Vec<Tile>>,
     rooms: Vec<Room>,
+    corriders: Vec<graphics::Rect>,
 }
 
 #[derive(Debug, Clone)]
 enum Tile {
     Empty,
     Walkable,
+}
+
+impl Tile {
+    pub fn draw(&self, ctx: &mut Context, x: f32, y: f32) -> GameResult<()> {
+        match *self {
+            Tile::Empty => graphics::ellipse(
+                ctx,
+                graphics::DrawMode::Fill,
+                graphics::Point2::new(x, y),
+                0.0,
+                0.0,
+                1.0,
+            ),
+            Tile::Walkable => {
+                let rect = graphics::Rect::new(x, y, 1.0, 1.0);
+                graphics::rectangle(ctx, graphics::DrawMode::Fill, rect)
+            }
+        }
+    }
 }
 
 impl Level {
@@ -34,6 +55,7 @@ impl Level {
             height,
             board,
             rooms: vec![],
+            corriders: vec![],
         }
     }
 
@@ -42,12 +64,20 @@ impl Level {
             room.draw(ctx)?;
         }
 
+        for c in self.corriders.iter() {
+            graphics::rectangle(ctx, graphics::DrawMode::Fill, *c)?;
+        }
+
         Ok(())
     }
 
     pub fn draw(&self, ctx: &mut Context) -> GameResult<()> {
         for room in self.rooms.iter() {
             room.draw(ctx)?;
+        }
+
+        for c in self.corriders.iter() {
+            graphics::rectangle(ctx, graphics::DrawMode::Fill, *c)?;
         }
 
         Ok(())
@@ -93,73 +123,50 @@ impl Level {
 
             match rng.gen_range(0, 2) {
                 0 => {
-                    match room.centre.x < other.centre.x {
-                        true => self.horz_corridor(
-                            room.centre.x as i32,
-                            other.centre.x as i32,
-                            room.centre.y as i32,
-                        ),
-                        false => self.horz_corridor(
-                            other.centre.x as i32,
-                            room.centre.x as i32,
-                            room.centre.y as i32,
-                        ),
-                    }
+                    let rect = match room.centre.x < other.centre.x {
+                        true => self.horz_corridor(room.centre.x, other.centre.x, room.centre.y),
+                        false => self.horz_corridor(other.centre.x, room.centre.x, room.centre.y),
+                    };
 
-                    match room.centre.y < other.centre.y {
-                        true => self.vert_corrider(
-                            room.centre.y as i32,
-                            other.centre.y as i32,
-                            other.centre.x as i32,
-                        ),
-                        false => self.vert_corrider(
-                            other.centre.y as i32,
-                            room.centre.y as i32,
-                            other.centre.x as i32,
-                        ),
-                    }
+                    self.corriders.push(rect);
+
+                    let rect = match room.centre.y < other.centre.y {
+                        true => self.vert_corrider(room.centre.y, other.centre.y, other.centre.x),
+                        false => self.vert_corrider(other.centre.y, room.centre.y, other.centre.x),
+                    };
+
+                    self.corriders.push(rect);
                 }
                 _ => {
-                    match room.centre.y <= other.centre.y {
-                        true => self.vert_corrider(
-                            room.centre.y as i32,
-                            other.centre.y as i32,
-                            other.centre.x as i32,
-                        ),
-                        false => self.vert_corrider(
-                            other.centre.y as i32,
-                            room.centre.y as i32,
-                            other.centre.x as i32,
-                        ),
-                    }
+                    let rect = match room.centre.y <= other.centre.y {
+                        true => self.vert_corrider(room.centre.y, other.centre.y, other.centre.x),
+                        false => self.vert_corrider(other.centre.y, room.centre.y, other.centre.x),
+                    };
 
-                    match room.centre.x <= other.centre.x {
-                        true => self.horz_corridor(
-                            room.centre.x as i32,
-                            other.centre.x as i32,
-                            room.centre.y as i32,
-                        ),
-                        false => self.horz_corridor(
-                            other.centre.x as i32,
-                            room.centre.x as i32,
-                            room.centre.y as i32,
-                        ),
-                    }
+                    self.corriders.push(rect);
+
+                    let rect = match room.centre.x <= other.centre.x {
+                        true => self.horz_corridor(room.centre.x, other.centre.x, room.centre.y),
+                        false => self.horz_corridor(other.centre.x, room.centre.x, room.centre.y),
+                    };
+
+                    self.corriders.push(rect);
                 }
-            }
+            };
         }
     }
 
-    fn horz_corridor(&mut self, start_x: i32, end_x: i32, y: i32) {
-        for col in start_x..end_x + 1 {
-            self.board[y as usize][col as usize] = Tile::Walkable;
-        }
+    fn horz_corridor(&mut self, start_x: f32, end_x: f32, y: f32) -> graphics::Rect {
+        graphics::Rect::new(start_x, y, end_x - start_x, 10.0)
+        // for col in start_x..end_x + 1 {
+        //     self.board[y as usize][col as usize] = Tile::Walkable;
+        // }
+
+        // unimplemented!()
     }
 
-    fn vert_corrider(&mut self, start_y: i32, end_y: i32, x: i32) {
-        for row in start_y..end_y + 1 {
-            self.board[row as usize][x as usize] = Tile::Walkable;
-        }
+    fn vert_corrider(&mut self, start_y: f32, end_y: f32, x: f32) -> graphics::Rect {
+        graphics::Rect::new(x, start_y, 10.0, end_y - start_y)
     }
 
     fn add_room(&mut self, room: &Room) {
@@ -199,7 +206,7 @@ impl Display for Tile {
 }
 
 pub fn create_level() -> Level {
-    let hash = create_hash("It's time to go");
+    let hash = create_hash("manuelneuersweeperkeeper");
 
     let seed = array_ref!(hash.as_bytes(), 0, 32);
 
