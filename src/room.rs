@@ -1,37 +1,54 @@
-use ggez::{Context, GameResult};
 use ggez::graphics;
-#[derive(Debug,Copy,Clone)]
+use ggez::{Context, GameResult};
+#[derive(Debug, Copy, Clone)]
 pub struct Room {
-    pub x: i32,
-    pub y: i32,
-    pub x2: i32,
-    pub y2: i32,
-    pub width: i32,
-    pub height: i32,
-    pub centre: (i32, i32),
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
+    pub centre: graphics::Point2,
+}
+
+// impl Into<graphics::Rect> for Room {
+//     fn into(self) -> graphics::Rect {
+//          graphics::Rect::new(self.x ,self.y , self.width , self.height)
+//     }
+// }
+
+impl From<Room> for graphics::Rect {
+    fn from(room: Room) -> Self {
+        graphics::Rect::new(room.x, room.y, room.width, room.height)
+    }
+}
+impl<'a> From<&'a Room> for graphics::Rect {
+    fn from(room: &Room) -> Self {
+        graphics::Rect::new(room.x, room.y, room.width, room.height)
+    }
 }
 
 impl Room {
-    pub fn new(x: i32, y: i32, width: i32, height: i32) -> Self {
+    pub fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
         Room {
             x,
             y,
-            x2: x + width,
-            y2: y + width,
             width,
             height,
-            centre: (x + (width / 2), y + (height / 2)),
+            centre: graphics::Point2::new(x + (width / 2.0), y + (height / 2.0)),
         }
     }
 
-    pub fn draw(&self,ctx:&mut Context) -> GameResult<()> {
-        let rect = graphics::Rect::new(self.x as f32,self.y as f32, self.width as f32, self.height as f32);
+    pub fn draw(&self, ctx: &mut Context) -> GameResult<()> {
+        let rect = graphics::Rect::new(self.x, self.y, self.width, self.height);
 
-        graphics::rectangle(ctx,graphics::DrawMode::Fill,rect)?;
+        graphics::rectangle(ctx, graphics::DrawMode::Fill, rect)?;
         Ok(())
     }
 
     pub fn intersect(&self, other: &Room) -> bool {
-        self.x <= other.x2 && self.x2 >= other.x && self.y <= other.y2 && self.y2 >= other.y
+        // let r =self.into();
+        let r1: graphics::Rect = self.into();
+        r1.overlaps(&other.into())
+
+        // unimplemented!()
     }
 }
