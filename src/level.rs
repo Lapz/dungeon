@@ -157,28 +157,14 @@ impl Level {
     }
 
     fn horz_corridor(&mut self, start_x: f32, end_x: f32, y: f32) -> graphics::Rect {
-        graphics::Rect::new(start_x, y, end_x - start_x, 10.0)
-        // for col in start_x..end_x + 1 {
-        //     self.board[y as usize][col as usize] = Tile::Walkable;
-        // }
-
-        // unimplemented!()
+        graphics::Rect::new(start_x, y, (end_x - start_x) + 1.5, 10.0)
     }
 
     fn vert_corrider(&mut self, start_y: f32, end_y: f32, x: f32) -> graphics::Rect {
-        graphics::Rect::new(x, start_y, 10.0, end_y - start_y)
+        graphics::Rect::new(x, start_y, 10.0, (end_y - start_y) + 1.5)
     }
 
     fn add_room(&mut self, room: &Room) {
-        for row in 0..(room.height as i32) {
-            for col in 0..(room.width as i32) {
-                let y = (room.y + row as f32) as usize;
-                let x = (room.x + col as f32) as usize;
-
-                self.board[y][x] = Tile::Walkable;
-            }
-        }
-
         self.rooms.push(*room);
     }
 }
