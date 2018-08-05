@@ -39,6 +39,10 @@ impl event::EventHandler for MainState {
 
         self.level.draw(ctx)?;
 
+        
+
+       
+
         graphics::present(ctx);
 
         Ok(())
@@ -51,6 +55,15 @@ fn main() {
     let ctx = &mut Context::load_from_conf("Dungeon", "Lapz", c).unwrap();
 
     let state = &mut MainState::new(ctx).unwrap();
+
+
+    use std::fs::File;
+    use std::io::Write;
+
+
+   let mut file = File::create("map.txt").expect("Couldn't create file");
+
+   file.write(format!("{:#?}",state.level.corridors).as_bytes()).unwrap();
 
     if let Err(e) = event::run(ctx, state) {
         println!("Error encountered: {}", e);

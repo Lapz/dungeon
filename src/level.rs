@@ -17,32 +17,13 @@ pub struct Level {
     height: i32,
     board: Vec<Vec<Tile>>,
     rooms: Vec<Room>,
-    corriders: Vec<graphics::Rect>,
+    pub corridors: Vec<graphics::Rect>,
 }
 
 #[derive(Debug, Clone)]
 enum Tile {
     Empty,
     Walkable,
-}
-
-impl Tile {
-    pub fn draw(&self, ctx: &mut Context, x: f32, y: f32) -> GameResult<()> {
-        match *self {
-            Tile::Empty => graphics::ellipse(
-                ctx,
-                graphics::DrawMode::Fill,
-                graphics::Point2::new(x, y),
-                0.0,
-                0.0,
-                1.0,
-            ),
-            Tile::Walkable => {
-                let rect = graphics::Rect::new(x, y, 1.0, 1.0);
-                graphics::rectangle(ctx, graphics::DrawMode::Fill, rect)
-            }
-        }
-    }
 }
 
 impl Level {
@@ -55,7 +36,7 @@ impl Level {
             height,
             board,
             rooms: vec![],
-            corriders: vec![],
+            corridors: vec![],
         }
     }
 
@@ -64,7 +45,7 @@ impl Level {
             room.draw(ctx)?;
         }
 
-        for c in self.corriders.iter() {
+        for c in self.corridors.iter() {
             graphics::rectangle(ctx, graphics::DrawMode::Fill, *c)?;
         }
 
@@ -76,7 +57,7 @@ impl Level {
             room.draw(ctx)?;
         }
 
-        for c in self.corriders.iter() {
+        for c in self.corridors.iter() {
             graphics::rectangle(ctx, graphics::DrawMode::Fill, *c)?;
         }
 
@@ -116,52 +97,52 @@ impl Level {
         }
     }
 
-    pub fn place_corrider(&mut self, rng: &mut StdRng) {
+    pub fn place_corridor(&mut self, rng: &mut StdRng) {
         for i in 0..(self.rooms.len() - 1) {
             let room = self.rooms[i];
             let other = self.rooms[i + 1];
 
             match rng.gen_range(0, 2) {
                 0 => {
-                    let rect = match room.centre.x < other.centre.x {
-                        true => self.horz_corridor(room.centre.x, other.centre.x, room.centre.y),
-                        false => self.horz_corridor(other.centre.x, room.centre.x, room.centre.y),
-                    };
-
-                    self.corriders.push(rect);
-
-                    let rect = match room.centre.y < other.centre.y {
-                        true => self.vert_corrider(room.centre.y, other.centre.y, other.centre.x),
-                        false => self.vert_corrider(other.centre.y, room.centre.y, other.centre.x),
-                    };
-
-                    self.corriders.push(rect);
-                }
-                _ => {
-                    let rect = match room.centre.y <= other.centre.y {
-                        true => self.vert_corrider(room.centre.y, other.centre.y, other.centre.x),
-                        false => self.vert_corrider(other.centre.y, room.centre.y, other.centre.x),
-                    };
-
-                    self.corriders.push(rect);
-
                     let rect = match room.centre.x <= other.centre.x {
                         true => self.horz_corridor(room.centre.x, other.centre.x, room.centre.y),
                         false => self.horz_corridor(other.centre.x, room.centre.x, room.centre.y),
                     };
 
-                    self.corriders.push(rect);
+                    self.corridors.push(rect);
+
+                    let rect = match room.centre.y <= other.centre.y {
+                        true => self.vert_corridor(room.centre.y, other.centre.y, other.centre.x),
+                        false => self.vert_corridor(other.centre.y, room.centre.y, other.centre.x),
+                    };
+
+                    self.corridors.push(rect);
+                }
+                _ => {
+                    let rect = match room.centre.y <= other.centre.y {
+                        true => self.vert_corridor(room.centre.y, other.centre.y, other.centre.x),
+                        false => self.vert_corridor(other.centre.y, room.centre.y, other.centre.x)
+                    };
+
+                    // self.corridors.push(rect);
+
+                    let rect = match room.centre.x <= other.centre.x {
+                        true => self.horz_corridor(room.centre.x, other.centre.x, room.centre.y),
+                        false => self.horz_corridor(other.centre.x, room.centre.x, room.centre.y)
+                    };
+
+                    // self.corridors.push(rect);
                 }
             };
         }
     }
 
     fn horz_corridor(&mut self, start_x: f32, end_x: f32, y: f32) -> graphics::Rect {
-        graphics::Rect::new(start_x, y, (end_x - start_x) + 1.5, 10.0)
+        graphics::Rect::new(start_x, y, (end_x+1.0 - start_x), 10.0)
     }
 
-    fn vert_corrider(&mut self, start_y: f32, end_y: f32, x: f32) -> graphics::Rect {
-        graphics::Rect::new(x, start_y, 10.0, (end_y - start_y) + 1.5)
+    fn vert_corridor(&mut self, start_y: f32, end_y: f32, x: f32) -> graphics::Rect {
+        graphics::Rect::new(x, start_y, 10.0, (end_y+1.0 - start_y) + 1.5)
     }
 
     fn add_room(&mut self, room: &Room) {
@@ -201,6 +182,6 @@ pub fn create_level() -> Level {
     let mut level = Level::new(720, 400);
 
     level.place_rooms(&mut rng);
-    level.place_corrider(&mut rng);
+    level.place_corridor(&mut rng);
     level
 }
